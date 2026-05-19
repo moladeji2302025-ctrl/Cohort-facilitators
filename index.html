@@ -791,7 +791,7 @@
             <div class="upload-zone" id="logoZone" tabindex="0" role="button" aria-label="Upload organization logo">
               <input type="file" id="logoInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
               <div class="upload-placeholder" id="logoPlaceholder">
-                <i class="ti ti-user-circle" aria-hidden="true"></i>
+                <i class="ti ti-building" aria-hidden="true"></i>
                 <div class="upload-main">Click to upload or drag and drop</div>
                 <div class="upload-hint">JPG, PNG, WEBP — max 5MB</div>
               </div>
@@ -848,7 +848,7 @@
     };
 
     const TOTAL_STEPS = 9;
-    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const EMAIL_REGEX = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
@@ -922,6 +922,7 @@
 
     function toggleShake() {
       card.classList.remove("shake");
+      // Force reflow so the shake animation reliably restarts on repeated validation failures.
       void card.offsetWidth;
       card.classList.add("shake");
       setTimeout(() => card.classList.remove("shake"), 410);
@@ -935,7 +936,8 @@
     }
 
     function escapeHtml(value) {
-      return value
+      const safeValue = String(value ?? "");
+      return safeValue
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -947,16 +949,17 @@
       const rows = document.getElementById("socialRows");
       rows.innerHTML = "";
       state.formData.socialHandles.forEach((row, index) => {
+        const safeIndex = Number(index);
         const wrapper = document.createElement("div");
         wrapper.className = "social-row";
         wrapper.innerHTML = `
-          <label class="sr-only" for="platform-${index}">Platform</label>
-          <select id="platform-${index}" data-index="${index}" class="social-platform">
+          <label class="sr-only" for="platform-${safeIndex}">Platform</label>
+          <select id="platform-${safeIndex}" data-index="${safeIndex}" class="social-platform">
             ${SOCIAL_PLATFORMS.map((item) => `<option value="${item}" ${item === row.platform ? "selected" : ""}>${item}</option>`).join("")}
           </select>
-          <label class="sr-only" for="handle-${index}">Handle</label>
-          <input id="handle-${index}" data-index="${index}" class="social-handle" type="text" placeholder="@yourhandle" value="${escapeHtml(row.handle)}" />
-          <button class="icon-button remove-social" type="button" aria-label="Remove social media row" data-index="${index}">
+          <label class="sr-only" for="handle-${safeIndex}">Handle</label>
+          <input id="handle-${safeIndex}" data-index="${safeIndex}" class="social-handle" type="text" placeholder="@yourhandle" value="${escapeHtml(row.handle)}" />
+          <button class="icon-button remove-social" type="button" aria-label="Remove social media row" data-index="${safeIndex}">
             <i class="ti ti-trash" aria-hidden="true"></i>
           </button>
         `;
@@ -1129,8 +1132,8 @@
     }
 
     function submitForm() {
-      const firstName = (state.formData.fullName.trim().split(" ")[0] || "there").replace(/[<>]/g, "");
-      const email = state.formData.emailAddress.trim().replace(/[<>]/g, "");
+      const firstName = state.formData.fullName.trim().split(" ")[0] || "there";
+      const email = state.formData.emailAddress.trim();
       successCopy.textContent = `Thank you, ${firstName}! We’ll be in touch at ${email} shortly.`;
       pageStage.style.display = "none";
       successScreen.style.display = "flex";
@@ -1286,8 +1289,9 @@
     card.addEventListener("keydown", (event) => {
       if (event.defaultPrevented) return;
       const target = event.target;
-      const isTextarea = target.tagName === "TEXTAREA";
-      const isButton = target.tagName === "BUTTON";
+      const tagName = target.tagName ? target.tagName.toUpperCase() : "";
+      const isTextarea = tagName === "TEXTAREA";
+      const isButton = tagName === "BUTTON";
       if (event.key === "Enter" && !isTextarea && !isButton) {
         event.preventDefault();
         if (validateCurrentPage()) {
