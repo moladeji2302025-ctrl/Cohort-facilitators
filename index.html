@@ -848,7 +848,6 @@
     };
 
     const TOTAL_STEPS = 9;
-    const EMAIL_REGEX = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
@@ -922,7 +921,7 @@
 
     function toggleShake() {
       card.classList.remove("shake");
-      // Force reflow so the shake animation reliably restarts on repeated validation failures.
+      // Force reflow (via offsetWidth read) so shake animation can restart on repeated failures.
       card.offsetWidth;
       card.classList.add("shake");
       setTimeout(() => card.classList.remove("shake"), 410);
@@ -936,13 +935,17 @@
     }
 
     function escapeHtml(value) {
-      const safeValue = String(value ?? "");
-      return safeValue
+      const stringValue = String(value ?? "");
+      return stringValue
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+    }
+
+    function isValidSocialIndex(index) {
+      return Number.isInteger(index) && index >= 0 && index < state.formData.socialHandles.length;
     }
 
     function renderSocialRows() {
@@ -1036,7 +1039,7 @@
         if (!state.formData.emailAddress.trim()) {
           valid = false;
           setError("emailAddress", "Please enter your email address.", fieldMap.emailAddress);
-        } else if (!EMAIL_REGEX.test(state.formData.emailAddress.trim())) {
+        } else if (!fieldMap.emailAddress.checkValidity()) {
           valid = false;
           setError("emailAddress", "Please enter a valid email format.", fieldMap.emailAddress);
         }
@@ -1080,7 +1083,7 @@
         field.classList.remove("is-error", "is-valid");
         return;
       }
-      if (EMAIL_REGEX.test(value)) {
+      if (fieldMap.emailAddress.checkValidity()) {
         errorMap.emailAddress.textContent = "";
         field.classList.remove("is-error");
         field.classList.add("is-valid");
@@ -1133,7 +1136,7 @@
     }
 
     function submitForm() {
-      const firstName = state.formData.fullName.trim().split(" ")[0] || "there";
+      const firstName = state.formData.fullName.trim().split(" ")[0] || "friend";
       const email = state.formData.emailAddress.trim();
       successCopy.textContent = `Thank you, ${firstName}! We’ll be in touch at ${email} shortly.`;
       pageStage.style.display = "none";
@@ -1193,7 +1196,7 @@
     document.getElementById("socialRows").addEventListener("input", (event) => {
       if (event.target.classList.contains("social-handle")) {
         const idx = Number(event.target.dataset.index);
-        if (!Number.isInteger(idx) || idx < 0 || idx >= state.formData.socialHandles.length) return;
+        if (!isValidSocialIndex(idx)) return;
         state.formData.socialHandles[idx].handle = event.target.value;
       }
     });
@@ -1201,7 +1204,7 @@
     document.getElementById("socialRows").addEventListener("change", (event) => {
       if (event.target.classList.contains("social-platform")) {
         const idx = Number(event.target.dataset.index);
-        if (!Number.isInteger(idx) || idx < 0 || idx >= state.formData.socialHandles.length) return;
+        if (!isValidSocialIndex(idx)) return;
         state.formData.socialHandles[idx].platform = event.target.value;
       }
     });
@@ -1210,7 +1213,7 @@
       const btn = event.target.closest(".remove-social");
       if (!btn) return;
       const idx = Number(btn.dataset.index);
-      if (!Number.isInteger(idx) || idx < 0 || idx >= state.formData.socialHandles.length) return;
+      if (!isValidSocialIndex(idx)) return;
       if (state.formData.socialHandles.length > 1) {
         state.formData.socialHandles.splice(idx, 1);
         renderSocialRows();
