@@ -182,6 +182,10 @@
       right: 0;
       z-index: 2;
       pointer-events: none;
+      width: 64px;
+      height: 64px;
+      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+      opacity: 0.95;
     }
 
     .step-label .current {
@@ -221,7 +225,7 @@
       opacity: 0;
       pointer-events: none;
       visibility: hidden;
-      padding-right: 64px;
+      padding-right: 80px;
     }
 
     .form-page.active {
@@ -687,7 +691,8 @@
       .icon-button { width: 100%; }
       .heading { font-size: 20px; }
       .form-logo { width: 34px; height: 34px; }
-      .form-page { padding-right: 52px; }
+      .form-logo-inline { width: 52px; height: 52px; }
+      .form-page { padding-right: 64px; }
       .ambient-bg span:nth-child(2),
       .ambient-bg span:nth-child(4) { display: none; }
     }
