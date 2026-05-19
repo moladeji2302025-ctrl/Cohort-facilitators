@@ -176,6 +176,14 @@
       flex-shrink: 0;
     }
 
+    .form-logo-inline {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
     .step-label .current {
       color: var(--color-primary);
     }
@@ -213,6 +221,7 @@
       opacity: 0;
       pointer-events: none;
       visibility: hidden;
+      padding-right: 64px;
     }
 
     .form-page.active {
@@ -678,6 +687,7 @@
       .icon-button { width: 100%; }
       .heading { font-size: 20px; }
       .form-logo { width: 34px; height: 34px; }
+      .form-page { padding-right: 52px; }
       .ambient-bg span:nth-child(2),
       .ambient-bg span:nth-child(4) { display: none; }
     }
@@ -746,6 +756,7 @@
 
     <main class="main">
       <div class="page-stage" id="pageStage">
+        <img class="form-logo form-logo-inline" src="WhatsApp_Image_2026-03-09_at_13.36.49-removebg-preview.png" alt="Cohort logo" />
         <!-- Step 1 -->
         <section class="form-page active" data-page="1" aria-labelledby="h1">
           <h1 class="heading" id="h1">What's your full name? <span class="required-mark" aria-hidden="true">*</span></h1>
