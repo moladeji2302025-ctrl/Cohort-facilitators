@@ -923,7 +923,7 @@
     function toggleShake() {
       card.classList.remove("shake");
       // Force reflow so the shake animation reliably restarts on repeated validation failures.
-      void card.offsetWidth;
+      card.offsetWidth;
       card.classList.add("shake");
       setTimeout(() => card.classList.remove("shake"), 410);
     }
@@ -950,6 +950,7 @@
       rows.innerHTML = "";
       state.formData.socialHandles.forEach((row, index) => {
         const safeIndex = Number(index);
+        if (!Number.isInteger(safeIndex) || safeIndex < 0) return;
         const wrapper = document.createElement("div");
         wrapper.className = "social-row";
         wrapper.innerHTML = `
@@ -1084,7 +1085,7 @@
         field.classList.remove("is-error");
         field.classList.add("is-valid");
       } else {
-        errorMap.emailAddress.textContent = "Email format looks invalid.";
+        errorMap.emailAddress.textContent = "Please enter a valid email address (e.g., user@example.com).";
         field.classList.add("is-error");
         field.classList.remove("is-valid");
       }
@@ -1192,6 +1193,7 @@
     document.getElementById("socialRows").addEventListener("input", (event) => {
       if (event.target.classList.contains("social-handle")) {
         const idx = Number(event.target.dataset.index);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= state.formData.socialHandles.length) return;
         state.formData.socialHandles[idx].handle = event.target.value;
       }
     });
@@ -1199,6 +1201,7 @@
     document.getElementById("socialRows").addEventListener("change", (event) => {
       if (event.target.classList.contains("social-platform")) {
         const idx = Number(event.target.dataset.index);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= state.formData.socialHandles.length) return;
         state.formData.socialHandles[idx].platform = event.target.value;
       }
     });
@@ -1207,6 +1210,7 @@
       const btn = event.target.closest(".remove-social");
       if (!btn) return;
       const idx = Number(btn.dataset.index);
+      if (!Number.isInteger(idx) || idx < 0 || idx >= state.formData.socialHandles.length) return;
       if (state.formData.socialHandles.length > 1) {
         state.formData.socialHandles.splice(idx, 1);
         renderSocialRows();
