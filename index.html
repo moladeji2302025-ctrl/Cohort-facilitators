@@ -106,8 +106,8 @@
 
     .card {
       width: 100%;
-      max-width: 680px;
-      min-height: 520px;
+      max-width: 860px;
+      min-height: clamp(560px, 84vh, 760px);
       background: var(--color-card);
       border: 0.5px solid rgba(3, 173, 252, 0.18);
       border-radius: var(--radius-card);
@@ -182,7 +182,7 @@
 
     .main {
       flex: 1;
-      padding: 24px;
+      padding: 28px;
       display: flex;
       align-items: center;
     }
@@ -190,7 +190,7 @@
     .page-stage {
       width: 100%;
       position: relative;
-      min-height: 316px;
+      min-height: clamp(340px, 46vh, 500px);
       transition: height var(--transition-fast);
     }
 
@@ -656,8 +656,10 @@
     }
 
     @media (max-width: 700px) {
-      .main { padding: 18px; }
-      .footer { padding: 14px 18px; }
+      body { padding: 12px; }
+      .card { min-height: calc(100vh - 24px); }
+      .main { padding: 20px; }
+      .footer { padding: 16px 20px; }
       .mentor-cards { grid-template-columns: 1fr; }
       .social-row { grid-template-columns: 1fr; }
       .icon-button { width: 100%; }
