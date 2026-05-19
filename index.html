@@ -699,7 +699,7 @@
           <h2 class="heading" id="h5">Upload your professional headshot <span class="required-mark" aria-hidden="true">*</span></h2>
           <p class="subtext">JPG, PNG or WEBP only. Max file size: 5MB.</p>
           <div class="upload-zone" id="headshotZone" tabindex="0" role="button" aria-label="Upload headshot">
-            <input type="file" id="headshotInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+            <input type="file" id="headshotInput" class="sr-only" accept="image/jpeg,image/png,image/webp" />
             <div class="upload-placeholder" id="headshotPlaceholder">
               <i class="ti ti-user-circle" aria-hidden="true"></i>
               <div class="upload-main">Click to upload or drag and drop</div>
@@ -789,7 +789,7 @@
           <div class="field">
             <label>Organization Logo</label>
             <div class="upload-zone" id="logoZone" tabindex="0" role="button" aria-label="Upload organization logo">
-              <input type="file" id="logoInput" class="sr-only" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+              <input type="file" id="logoInput" class="sr-only" accept="image/jpeg,image/png,image/webp" />
               <div class="upload-placeholder" id="logoPlaceholder">
                 <i class="ti ti-building" aria-hidden="true"></i>
                 <div class="upload-main">Click to upload or drag and drop</div>
@@ -922,7 +922,7 @@
     function toggleShake() {
       card.classList.remove("shake");
       // Force reflow (via offsetWidth read) so shake animation can restart on repeated failures.
-      card.offsetWidth;
+      void card.offsetWidth;
       card.classList.add("shake");
       setTimeout(() => card.classList.remove("shake"), 410);
     }
@@ -953,7 +953,7 @@
       rows.innerHTML = "";
       state.formData.socialHandles.forEach((row, index) => {
         const safeIndex = Number(index);
-        if (!Number.isInteger(safeIndex) || safeIndex < 0) return;
+        if (!isValidSocialIndex(safeIndex)) return;
         const wrapper = document.createElement("div");
         wrapper.className = "social-row";
         wrapper.innerHTML = `
@@ -1136,7 +1136,7 @@
     }
 
     function submitForm() {
-      const firstName = state.formData.fullName.trim().split(" ")[0] || "friend";
+      const firstName = state.formData.fullName.trim().split(" ")[0] || "Participant";
       const email = state.formData.emailAddress.trim();
       successCopy.textContent = `Thank you, ${firstName}! We’ll be in touch at ${email} shortly.`;
       pageStage.style.display = "none";
