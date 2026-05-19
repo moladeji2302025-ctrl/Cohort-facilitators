@@ -45,6 +45,64 @@
       align-items: center;
       justify-content: center;
       padding: 22px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(3, 173, 252, 0.18), transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(120, 200, 160, 0.12), transparent 38%),
+        linear-gradient(150deg, #030915 0%, #061429 45%, #081a35 100%);
+    }
+
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .ambient-bg span {
+      position: absolute;
+      border-radius: 999px;
+      border: 1px solid rgba(3, 173, 252, 0.18);
+      background: radial-gradient(circle at 30% 30%, rgba(3, 173, 252, 0.16), rgba(3, 173, 252, 0.02) 72%);
+      filter: blur(0.2px);
+      animation: floatDrift linear infinite;
+    }
+
+    .ambient-bg span:nth-child(1) {
+      width: 320px;
+      height: 320px;
+      top: -90px;
+      left: -80px;
+      animation-duration: 24s;
+    }
+
+    .ambient-bg span:nth-child(2) {
+      width: 260px;
+      height: 260px;
+      top: 16%;
+      right: -90px;
+      animation-duration: 30s;
+      animation-direction: reverse;
+    }
+
+    .ambient-bg span:nth-child(3) {
+      width: 180px;
+      height: 180px;
+      bottom: 9%;
+      left: 8%;
+      animation-duration: 19s;
+      animation-delay: -6s;
+    }
+
+    .ambient-bg span:nth-child(4) {
+      width: 220px;
+      height: 220px;
+      bottom: -70px;
+      right: 14%;
+      animation-duration: 27s;
+      animation-delay: -8s;
     }
 
     .card {
@@ -58,6 +116,8 @@
       flex-direction: column;
       overflow: hidden;
       position: relative;
+      z-index: 1;
+      box-shadow: 0 24px 70px rgba(2, 8, 24, 0.48);
     }
 
     .card.shake {
@@ -604,6 +664,12 @@
       .social-row { grid-template-columns: 1fr; }
       .icon-button { width: 100%; }
       .heading { font-size: 20px; }
+      .ambient-bg span:nth-child(2),
+      .ambient-bg span:nth-child(4) { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ambient-bg span { animation: none; }
     }
 
     /* =========================
@@ -635,9 +701,17 @@
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    @keyframes floatDrift {
+      0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.35; }
+      50% { transform: translate3d(14px, -22px, 0) scale(1.06); opacity: 0.56; }
+      100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.35; }
+    }
   </style>
 </head>
 <body>
+  <div class="ambient-bg" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+  </div>
   <div class="card" id="formCard">
     <header class="header">
       <div class="header-top">
