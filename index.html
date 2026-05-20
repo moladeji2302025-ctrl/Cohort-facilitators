@@ -1001,7 +1001,7 @@
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
-    const GOOGLE_SHEET_WEB_APP_URL = ""; // Set to your Google Apps Script Web App URL.
+    const GOOGLE_SHEET_WEB_APP_URL = ""; // Set to your Google Apps Script Web App URL (README.md step 5).
     const SUBMIT_TIMEOUT_MS = 15000;
 
     const card = document.getElementById("formCard");
@@ -1386,9 +1386,9 @@
       setSubmitStatus("Submitting your response...", "");
       updateHeader();
       const payload = buildSubmissionPayload();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
         const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
           method: "POST",
           mode: "cors",
@@ -1396,13 +1396,12 @@
           body: JSON.stringify(payload),
           signal: controller.signal
         });
-        clearTimeout(timeout);
         if (!response.ok) {
           const statusText = response.statusText || "Request failed";
           throw new Error(`Submission failed (${response.status} ${statusText})`);
         }
       } catch (error) {
-        const message = error?.name === "AbortError"
+        const message = error && error.name === "AbortError"
           ? "Submission timed out. Please try again."
           : "Unable to save your response. Check your connection and try again.";
         setSubmitStatus(message, "error");
@@ -1410,6 +1409,8 @@
         isSubmitting = false;
         updateHeader();
         return;
+      } finally {
+        clearTimeout(timeout);
       }
       isSubmitting = false;
       updateHeader();
