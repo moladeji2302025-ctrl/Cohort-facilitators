@@ -5,12 +5,14 @@
 1. Create a Google Sheet for responses.
 2. Open **Extensions → Apps Script** and paste the script below.
 3. Update `SHEET_NAME` if you want a custom sheet tab name.
-4. Deploy as **Web app** (Execute as: **Me**, Who has access: **Anyone**).
-5. Copy the Web App URL into `GOOGLE_SHEET_WEB_APP_URL` in `index.html`.
+4. Update `ALLOWED_ORIGIN` to your deployed site domain.
+5. Deploy as **Web app** (Execute as: **Me**, Who has access: **Anyone**).
+6. Copy the Web App URL into `GOOGLE_SHEET_WEB_APP_URL` in `index.html`.
 
 ### Apps Script (Code.gs)
 ```javascript
 const SHEET_NAME = "Responses";
+const ALLOWED_ORIGIN = "https://yourdomain.com";
 
 function doPost(e) {
   let payload = {};
@@ -19,7 +21,7 @@ function doPost(e) {
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Invalid JSON payload" }))
       .setMimeType(ContentService.MimeType.JSON)
-      .setHeader("Access-Control-Allow-Origin", "*");
+      .setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   }
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
@@ -64,12 +66,12 @@ function doPost(e) {
   ]);
   return ContentService.createTextOutput(JSON.stringify({ status: "ok" }))
     .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
 }
 
 function doOptions() {
   return ContentService.createTextOutput("")
-    .setHeader("Access-Control-Allow-Origin", "*")
+    .setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN)
     .setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
     .setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
@@ -98,6 +100,6 @@ Then inside `doPost`, add:
 if (isRateLimited()) {
   return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Rate limit exceeded" }))
     .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
 }
 ```

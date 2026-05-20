@@ -1001,7 +1001,7 @@
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
-    const GOOGLE_SHEET_WEB_APP_URL = ""; // Set to your Google Apps Script Web App URL (README.md step 5).
+    const GOOGLE_SHEET_WEB_APP_URL = ""; // Set to your Google Apps Script Web App URL (README.md step 6).
     const SUBMIT_TIMEOUT_MS = 15000;
 
     const card = document.getElementById("formCard");
@@ -1067,9 +1067,13 @@
 
     function isSubmissionConfigured() {
       if (!GOOGLE_SHEET_WEB_APP_URL || !GOOGLE_SHEET_WEB_APP_URL.trim()) return false;
-      const lowerUrl = GOOGLE_SHEET_WEB_APP_URL.toLowerCase();
-      const invalidHosts = ["example.com", "localhost", "127.0.0.1"];
-      return !invalidHosts.some((host) => lowerUrl.includes(host));
+      try {
+        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+        const allowedHosts = ["script.google.com", "script.googleusercontent.com"];
+        return allowedHosts.includes(url.hostname);
+      } catch (error) {
+        return false;
+      }
     }
 
     function updateConfigWarning() {
@@ -1241,7 +1245,7 @@
           platform: row.platform,
           handle: row.handle
         })),
-        headshot: state.formData.headshot ? { ...state.formData.headshot } : null,
+        headshot: state.formData.headshot || null,
         primaryRole: state.formData.primaryRole,
         mentorInterest: state.formData.mentorInterest,
         mentorTopic: state.formData.mentorTopic,
@@ -1250,7 +1254,7 @@
         sessionPreference: [...state.formData.sessionPreference],
         orgName: state.formData.orgName.trim(),
         orgAddress: state.formData.orgAddress.trim(),
-        logoUpload: state.formData.logoUpload ? { ...state.formData.logoUpload } : null,
+        logoUpload: state.formData.logoUpload || null,
         brandingItems: state.formData.brandingItems.trim()
       };
     }
@@ -1407,8 +1411,10 @@
         });
         if (!response.ok) {
           const statusText = response.statusText || "Request failed";
-          const httpError = new Error(`Submission failed (${response.status} ${statusText})`);
+          const httpError = new Error("Submission failed");
           httpError.name = "HttpError";
+          httpError.status = response.status;
+          httpError.statusText = statusText;
           throw httpError;
         }
       } catch (error) {
