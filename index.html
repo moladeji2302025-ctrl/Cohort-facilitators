@@ -441,7 +441,8 @@
       word-break: break-word;
     }
 
-    .mentor-cards {
+    .mentor-cards,
+    .role-cards {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
@@ -686,7 +687,8 @@
       .card { min-height: calc(100vh - 24px); }
       .main { padding: 20px; }
       .footer { padding: 16px 20px; }
-      .mentor-cards { grid-template-columns: 1fr; }
+      .mentor-cards,
+      .role-cards { grid-template-columns: 1fr; }
       .social-row { grid-template-columns: 1fr; }
       .icon-button { width: 100%; }
       .heading { font-size: 20px; }
@@ -749,7 +751,7 @@
       <div class="header-top">
         <div class="brand"><span class="brand-dot" aria-hidden="true"></span> FACILITATOR REGISTRATION</div>
         <div class="header-actions">
-          <div class="step-label" id="stepLabel">Step <span class="current">1</span> of 9</div>
+          <div class="step-label" id="stepLabel">Step <span class="current">1</span> of 10</div>
           <img class="form-logo" src="WhatsApp_Image_2026-03-09_at_13.36.49-removebg-preview.png" alt="Cohort logo" />
         </div>
       </div>
@@ -825,8 +827,27 @@
 
         <!-- Step 6 -->
         <section class="form-page" data-page="6" aria-labelledby="h6">
-          <h2 class="heading" id="h6">Would you like to be a mentor? <span class="required-mark" aria-hidden="true">*</span></h2>
-          <p class="subtext">Mentors meet with attendees for focused sessions.</p>
+          <h2 class="heading" id="h6">Are you registering as a facilitator or a mentor? <span class="required-mark" aria-hidden="true">*</span></h2>
+          <p class="subtext">Choose the primary role for this registration.</p>
+          <div class="role-cards">
+            <button class="select-card" type="button" data-role="facilitator">
+              <i class="ti ti-users" aria-hidden="true"></i>
+              <span class="title">Facilitator</span>
+              <span class="desc">Guide sessions and support attendees</span>
+            </button>
+            <button class="select-card" type="button" data-role="mentor">
+              <i class="ti ti-user-star" aria-hidden="true"></i>
+              <span class="title">Mentor</span>
+              <span class="desc">Offer focused mentorship sessions</span>
+            </button>
+          </div>
+          <div class="error-text" id="error-roleChoice" role="alert"></div>
+        </section>
+
+        <!-- Step 7 -->
+        <section class="form-page" data-page="7" aria-labelledby="h7">
+          <h2 class="heading" id="h7"><span id="secondaryRoleHeading">Would you like to be a mentor?</span> <span class="required-mark" aria-hidden="true">*</span></h2>
+          <p class="subtext" id="secondaryRoleSubtext">Mentors meet with attendees for focused sessions.</p>
           <div class="mentor-cards">
             <button class="select-card" type="button" data-mentor="yes">
               <i class="ti ti-heart-handshake" aria-hidden="true"></i>
@@ -836,7 +857,7 @@
             <button class="select-card" type="button" data-mentor="no">
               <i class="ti ti-calendar-off" aria-hidden="true"></i>
               <span class="title">Not this time</span>
-              <span class="desc">Just facilitating</span>
+              <span class="desc" id="secondaryRoleNoDesc">Just facilitating</span>
             </button>
           </div>
           <div class="mentor-extra" id="mentorExtra">
@@ -851,9 +872,9 @@
           <div class="error-text" id="error-mentorInterest" role="alert"></div>
         </section>
 
-        <!-- Step 7 -->
-        <section class="form-page" data-page="7" aria-labelledby="h7">
-          <h2 class="heading" id="h7">Tell us about yourself <span class="required-mark" aria-hidden="true">*</span></h2>
+        <!-- Step 8 -->
+        <section class="form-page" data-page="8" aria-labelledby="h8">
+          <h2 class="heading" id="h8">Tell us about yourself <span class="required-mark" aria-hidden="true">*</span></h2>
           <p class="subtext">This bio will be read aloud to introduce you. Max 300 characters.</p>
           <label for="shortBio">Short bio</label>
           <textarea id="shortBio" maxlength="300" rows="4"></textarea>
@@ -861,9 +882,9 @@
           <div class="error-text" id="error-shortBio" role="alert"></div>
         </section>
 
-        <!-- Step 8 -->
-        <section class="form-page" data-page="8" aria-labelledby="h8">
-          <h2 class="heading" id="h8">Which session(s) are you interested in? <span class="required-mark" aria-hidden="true">*</span></h2>
+        <!-- Step 9 -->
+        <section class="form-page" data-page="9" aria-labelledby="h9">
+          <h2 class="heading" id="h9">Which session(s) are you interested in? <span class="required-mark" aria-hidden="true">*</span></h2>
           <p class="subtext">Select all that apply.</p>
           <div class="session-stack">
             <button class="session-card" type="button" data-session="Session 1 — Leadership &amp; Innovation">
@@ -884,9 +905,9 @@
           <div class="error-text" id="error-sessionPreference" role="alert"></div>
         </section>
 
-        <!-- Step 9 -->
-        <section class="form-page" data-page="9" aria-labelledby="h9">
-          <h2 class="heading" id="h9">Tell us about your organization</h2>
+        <!-- Step 10 -->
+        <section class="form-page" data-page="10" aria-labelledby="h10">
+          <h2 class="heading" id="h10">Tell us about your organization</h2>
           <p class="subtext">All fields on this page are optional.</p>
           <div class="field">
             <label for="orgName">Organization Name</label>
@@ -945,6 +966,7 @@
         emailAddress: "",
         socialHandles: [{ platform: "Instagram", handle: "" }],
         headshot: null,
+        primaryRole: "",
         mentorInterest: "",
         mentorTopic: "",
         mentorAvailability: "",
@@ -957,7 +979,7 @@
       }
     };
 
-    const TOTAL_STEPS = 9;
+    const TOTAL_STEPS = 10;
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
@@ -990,6 +1012,7 @@
       emailAddress: document.getElementById("error-emailAddress"),
       socialHandles: document.getElementById("error-socialHandles"),
       headshot: document.getElementById("error-headshot"),
+      roleChoice: document.getElementById("error-roleChoice"),
       mentorInterest: document.getElementById("error-mentorInterest"),
       shortBio: document.getElementById("error-shortBio"),
       sessionPreference: document.getElementById("error-sessionPreference"),
@@ -1084,12 +1107,41 @@
       });
     }
 
+    function getSecondaryRole() {
+      return state.formData.primaryRole === "mentor" ? "facilitator" : "mentor";
+    }
+
+    function updateSecondaryRoleCopy() {
+      const secondaryRole = getSecondaryRole();
+      const heading = document.getElementById("secondaryRoleHeading");
+      const subtext = document.getElementById("secondaryRoleSubtext");
+      const noDesc = document.getElementById("secondaryRoleNoDesc");
+      if (!heading || !subtext || !noDesc) return;
+      if (secondaryRole === "facilitator") {
+        heading.textContent = "Would you like to be a facilitator?";
+        subtext.textContent = "Facilitators guide sessions and support attendees throughout the experience.";
+        noDesc.textContent = "Just mentoring";
+      } else {
+        heading.textContent = "Would you like to be a mentor?";
+        subtext.textContent = "Mentors meet with attendees for focused sessions.";
+        noDesc.textContent = "Just facilitating";
+      }
+    }
+
+    function renderRoleSelection() {
+      document.querySelectorAll("[data-role]").forEach((btn) => {
+        btn.classList.toggle("selected", btn.dataset.role === state.formData.primaryRole);
+      });
+      updateSecondaryRoleCopy();
+    }
+
     function syncFieldsFromState() {
       Object.entries(fieldMap).forEach(([key, node]) => {
         if (!node) return;
         node.value = state.formData[key] || "";
       });
       renderSocialRows();
+      renderRoleSelection();
       renderMentorSelection();
       renderSessionSelection();
       renderUploadPreview("headshot");
@@ -1099,11 +1151,13 @@
     }
 
     function renderMentorSelection() {
+      updateSecondaryRoleCopy();
       document.querySelectorAll("[data-mentor]").forEach((btn) => {
         btn.classList.toggle("selected", btn.dataset.mentor === state.formData.mentorInterest);
       });
       const mentorExtra = document.getElementById("mentorExtra");
-      mentorExtra.style.display = state.formData.mentorInterest === "yes" ? "block" : "none";
+      const isSecondaryMentor = getSecondaryRole() === "mentor";
+      mentorExtra.style.display = isSecondaryMentor && state.formData.mentorInterest === "yes" ? "block" : "none";
       document.querySelectorAll(".pill").forEach((pill) => {
         pill.classList.toggle("selected", pill.dataset.availability === state.formData.mentorAvailability);
       });
@@ -1165,16 +1219,21 @@
           setError("headshot", "Please upload a professional headshot.");
         }
       } else if (state.currentPage === 6) {
+        if (!state.formData.primaryRole) {
+          valid = false;
+          setError("roleChoice", "Please select one option.");
+        }
+      } else if (state.currentPage === 7) {
         if (!state.formData.mentorInterest) {
           valid = false;
           setError("mentorInterest", "Please select one option.");
         }
-      } else if (state.currentPage === 7) {
+      } else if (state.currentPage === 8) {
         if (!state.formData.shortBio.trim()) {
           valid = false;
           setError("shortBio", "Please provide a short bio.", fieldMap.shortBio);
         }
-      } else if (state.currentPage === 8) {
+      } else if (state.currentPage === 9) {
         if (!state.formData.sessionPreference.length) {
           valid = false;
           setError("sessionPreference", "Please select at least one session.");
@@ -1252,7 +1311,7 @@
       pageStage.style.display = "none";
       successScreen.style.display = "flex";
       footer.style.display = "none";
-      stepLabel.innerHTML = `Step <span class="current">9</span> of 9`;
+      stepLabel.innerHTML = `Step <span class="current">${TOTAL_STEPS}</span> of ${TOTAL_STEPS}`;
       stepAnnouncer.textContent = "Registration complete";
     }
 
@@ -1264,6 +1323,7 @@
         emailAddress: "",
         socialHandles: [{ platform: "Instagram", handle: "" }],
         headshot: null,
+        primaryRole: "",
         mentorInterest: "",
         mentorTopic: "",
         mentorAvailability: "",
@@ -1328,6 +1388,18 @@
         state.formData.socialHandles.splice(idx, 1);
         renderSocialRows();
       }
+    });
+
+    document.querySelectorAll("[data-role]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.formData.primaryRole = btn.dataset.role;
+        state.formData.mentorInterest = "";
+        state.formData.mentorTopic = "";
+        state.formData.mentorAvailability = "";
+        renderRoleSelection();
+        renderMentorSelection();
+        adjustStageHeight();
+      });
     });
 
     document.querySelectorAll("[data-mentor]").forEach((btn) => {
