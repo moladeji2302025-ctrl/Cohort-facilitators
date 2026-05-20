@@ -69,3 +69,5 @@ function doOptions() {
 ```
 
 The headshot and logo fields are posted as JSON payloads (including data URLs). If you want to store the images in Drive instead of the sheet, extend the Apps Script to write files and store the resulting file links.
+
+The Web App URL is public by design. Consider adding basic validation, quotas, or token checks in Apps Script to reduce spam submissions.

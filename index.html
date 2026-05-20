@@ -1393,9 +1393,16 @@
           signal: controller.signal
         });
         clearTimeout(timeout);
-        if (!response.ok) throw new Error(`Submission failed (${response.status})`);
+        if (!response.ok) {
+          const statusText = response.statusText || "Request failed";
+          throw new Error(`Submission failed (${response.status} ${statusText})`);
+        }
       } catch (error) {
-        setSubmitStatus("Unable to save your response. Please try again.", "error");
+        const message = error?.name === "AbortError"
+          ? "Submission timed out. Please try again."
+          : "Unable to save your response. Please try again.";
+        setSubmitStatus(message, "error");
+        console.error("Submission error:", error);
         isSubmitting = false;
         updateHeader();
         return;
