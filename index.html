@@ -1001,8 +1001,9 @@
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
-    const GOOGLE_SHEET_WEB_APP_URL = ""; // Set to your Google Apps Script Web App URL (README.md step 6).
+    const GOOGLE_SHEET_WEB_APP_URL = null; // Set to your Google Apps Script Web App URL (README.md step 6).
     const SUBMIT_TIMEOUT_MS = 15000;
+    const SUBMIT_TIMEOUT_SECONDS = Math.round(SUBMIT_TIMEOUT_MS / 1000);
 
     const card = document.getElementById("formCard");
     const pageStage = document.getElementById("pageStage");
@@ -1066,7 +1067,7 @@
     }
 
     function isSubmissionConfigured() {
-      if (!GOOGLE_SHEET_WEB_APP_URL || !GOOGLE_SHEET_WEB_APP_URL.trim()) return false;
+      if (typeof GOOGLE_SHEET_WEB_APP_URL !== "string" || !GOOGLE_SHEET_WEB_APP_URL.trim()) return false;
       try {
         const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
         const allowedHosts = ["script.google.com", "script.googleusercontent.com"];
@@ -1417,10 +1418,21 @@
           httpError.statusText = statusText;
           throw httpError;
         }
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const body = await response.json();
+          if (body && body.status && body.status !== "ok") {
+            const httpError = new Error("Submission failed");
+            httpError.name = "HttpError";
+            httpError.status = response.status;
+            httpError.statusText = body.message || "Request failed";
+            throw httpError;
+          }
+        }
       } catch (error) {
         let message = "We couldn't save your response. Please try again or contact support.";
         if (error.name === "AbortError") {
-          message = "Submission timed out. Please try again.";
+          message = `Submission timed out after ${SUBMIT_TIMEOUT_SECONDS} seconds. Please try again.`;
         } else if (error.name === "TypeError") {
           message = "Network error while submitting. Check your connection and try again.";
         } else if (error.name === "HttpError") {
