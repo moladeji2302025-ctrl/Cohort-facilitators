@@ -1001,7 +1001,7 @@
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
-    const GOOGLE_SHEET_WEB_APP_URL = "REPLACE_WITH_YOUR_APPS_SCRIPT_WEB_APP_URL";
+    const GOOGLE_SHEET_WEB_APP_URL = ""; // Set to your Google Apps Script Web App URL.
     const SUBMIT_TIMEOUT_MS = 15000;
 
     const card = document.getElementById("formCard");
@@ -1063,6 +1063,10 @@
       submitStatus.textContent = message;
       submitStatus.classList.remove("error", "success");
       if (variant) submitStatus.classList.add(variant);
+    }
+
+    function isSubmissionConfigured() {
+      return Boolean(GOOGLE_SHEET_WEB_APP_URL && GOOGLE_SHEET_WEB_APP_URL.trim());
     }
 
     function setError(key, message, fieldEl = null) {
@@ -1374,7 +1378,7 @@
 
     async function submitForm() {
       if (isSubmitting) return;
-      if (!GOOGLE_SHEET_WEB_APP_URL || GOOGLE_SHEET_WEB_APP_URL.includes("REPLACE_WITH")) {
+      if (!isSubmissionConfigured()) {
         setSubmitStatus("Add your Google Apps Script Web App URL to enable submissions.", "error");
         return;
       }
@@ -1400,7 +1404,7 @@
       } catch (error) {
         const message = error?.name === "AbortError"
           ? "Submission timed out. Please try again."
-          : "Unable to save your response. Please try again.";
+          : "Unable to save your response. Check your connection and try again.";
         setSubmitStatus(message, "error");
         console.error("Submission error:", error);
         isSubmitting = false;
