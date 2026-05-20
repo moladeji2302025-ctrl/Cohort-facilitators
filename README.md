@@ -13,7 +13,14 @@
 const SHEET_NAME = "Responses";
 
 function doPost(e) {
-  const payload = JSON.parse(e.postData.contents || "{}");
+  let payload = {};
+  try {
+    payload = JSON.parse(e.postData.contents || "{}");
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Invalid JSON payload" }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader("Access-Control-Allow-Origin", "*");
+  }
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
   const headers = [
@@ -71,3 +78,26 @@ function doOptions() {
 The headshot and logo fields are posted as JSON payloads (including data URLs). If you want to store the images in Drive instead of the sheet, extend the Apps Script to write files and store the resulting file links.
 
 The Web App URL is public by design. Consider adding basic validation, quotas, or token checks in Apps Script to reduce spam submissions.
+
+### Optional hardening (rate limit example)
+```javascript
+const RATE_LIMIT_WINDOW_SEC = 60;
+const RATE_LIMIT_MAX = 30;
+
+function isRateLimited() {
+  const cache = CacheService.getScriptCache();
+  const key = "rate-limit";
+  const count = Number(cache.get(key) || 0) + 1;
+  cache.put(key, String(count), RATE_LIMIT_WINDOW_SEC);
+  return count > RATE_LIMIT_MAX;
+}
+```
+
+Then inside `doPost`, add:
+```javascript
+if (isRateLimited()) {
+  return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Rate limit exceeded" }))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*");
+}
+```

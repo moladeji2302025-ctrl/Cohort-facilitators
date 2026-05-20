@@ -1066,7 +1066,10 @@
     }
 
     function isSubmissionConfigured() {
-      return Boolean(GOOGLE_SHEET_WEB_APP_URL && GOOGLE_SHEET_WEB_APP_URL.trim());
+      if (!GOOGLE_SHEET_WEB_APP_URL || !GOOGLE_SHEET_WEB_APP_URL.trim()) return false;
+      const lowerUrl = GOOGLE_SHEET_WEB_APP_URL.toLowerCase();
+      const invalidHosts = ["example.com", "localhost", "127.0.0.1"];
+      return !invalidHosts.some((host) => lowerUrl.includes(host));
     }
 
     function updateConfigWarning() {
@@ -1404,12 +1407,19 @@
         });
         if (!response.ok) {
           const statusText = response.statusText || "Request failed";
-          throw new Error(`Submission failed (${response.status} ${statusText})`);
+          const httpError = new Error(`Submission failed (${response.status} ${statusText})`);
+          httpError.name = "HttpError";
+          throw httpError;
         }
       } catch (error) {
-        const message = error.name === "AbortError"
-          ? "Submission timed out. Please try again."
-          : "We couldn't save your response. Please try again or contact support.";
+        let message = "We couldn't save your response. Please try again or contact support.";
+        if (error.name === "AbortError") {
+          message = "Submission timed out. Please try again.";
+        } else if (error.name === "TypeError") {
+          message = "Network error while submitting. Check your connection and try again.";
+        } else if (error.name === "HttpError") {
+          message = "We couldn't save your response. Please try again later.";
+        }
         setSubmitStatus(message, "error");
         console.error("Submission error:", error);
         isSubmitting = false;
