@@ -589,6 +589,17 @@
       gap: 10px;
     }
 
+    .submit-status {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-muted);
+      min-height: 16px;
+    }
+
+    .submit-status.error { color: var(--color-error); }
+    .submit-status.success { color: var(--color-success); }
+
     .btn {
       border-radius: var(--radius-md);
       padding: 11px 24px;
@@ -596,6 +607,12 @@
       font-family: inherit;
       cursor: pointer;
       transition: transform var(--transition-fast), opacity var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
 
     .btn-ghost {
@@ -950,6 +967,7 @@
 
     <footer class="footer" id="formFooter">
       <button class="btn btn-ghost" type="button" id="prevBtn">Previous</button>
+      <div class="submit-status" id="submitStatus" aria-live="polite"></div>
       <button class="btn btn-primary" type="button" id="nextBtn">Next</button>
     </footer>
   </div>
@@ -983,6 +1001,9 @@
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
+    const GOOGLE_SHEET_WEB_APP_URL = null; // Set to your Google Apps Script Web App URL (README.md step 6).
+    const SUBMIT_TIMEOUT_MS = 15000;
+    const SUBMIT_TIMEOUT_SECONDS = Math.round(SUBMIT_TIMEOUT_MS / 1000);
 
     const card = document.getElementById("formCard");
     const pageStage = document.getElementById("pageStage");
@@ -994,6 +1015,9 @@
     const footer = document.getElementById("formFooter");
     const successScreen = document.getElementById("successScreen");
     const successCopy = document.getElementById("successCopy");
+    const submitStatus = document.getElementById("submitStatus");
+
+    let isSubmitting = false;
 
     const fieldMap = {
       fullName: document.getElementById("fullName"),
@@ -1025,12 +1049,38 @@
       stepAnnouncer.textContent = `Step ${state.currentPage} of ${TOTAL_STEPS}`;
       progressFill.style.width = `${progressPct}%`;
       prevBtn.style.visibility = state.currentPage === 1 ? "hidden" : "visible";
-      nextBtn.textContent = state.currentPage === TOTAL_STEPS ? "Submit Registration" : "Next";
+      nextBtn.textContent = isSubmitting ? "Submitting..." : state.currentPage === TOTAL_STEPS ? "Submit Registration" : "Next";
+      nextBtn.disabled = isSubmitting;
+      prevBtn.disabled = isSubmitting;
     }
 
     function clearErrors() {
       Object.values(errorMap).forEach((el) => { if (el) el.textContent = ""; });
       document.querySelectorAll(".is-error").forEach((el) => el.classList.remove("is-error"));
+    }
+
+    function setSubmitStatus(message = "", variant = "") {
+      if (!submitStatus) return;
+      submitStatus.textContent = message;
+      submitStatus.classList.remove("error", "success");
+      if (variant) submitStatus.classList.add(variant);
+    }
+
+    function isSubmissionConfigured() {
+      if (typeof GOOGLE_SHEET_WEB_APP_URL !== "string" || !GOOGLE_SHEET_WEB_APP_URL.trim()) return false;
+      try {
+        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+        const allowedHosts = ["script.google.com", "script.googleusercontent.com"];
+        return allowedHosts.includes(url.hostname);
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function updateConfigWarning() {
+      if (!isSubmissionConfigured()) {
+        setSubmitStatus("Configuration required: see README.md for Google Sheets setup instructions.", "error");
+      }
     }
 
     function setError(key, message, fieldEl = null) {
@@ -1186,6 +1236,30 @@
       }
     }
 
+    function buildSubmissionPayload() {
+      return {
+        submittedAt: new Date().toISOString(),
+        fullName: state.formData.fullName.trim(),
+        phoneNumber: state.formData.phoneNumber.trim(),
+        emailAddress: state.formData.emailAddress.trim(),
+        socialHandles: state.formData.socialHandles.map((row) => ({
+          platform: row.platform,
+          handle: row.handle
+        })),
+        headshot: state.formData.headshot || null,
+        primaryRole: state.formData.primaryRole,
+        mentorInterest: state.formData.mentorInterest,
+        mentorTopic: state.formData.mentorTopic,
+        mentorAvailability: state.formData.mentorAvailability,
+        shortBio: state.formData.shortBio.trim(),
+        sessionPreference: [...state.formData.sessionPreference],
+        orgName: state.formData.orgName.trim(),
+        orgAddress: state.formData.orgAddress.trim(),
+        logoUpload: state.formData.logoUpload || null,
+        brandingItems: state.formData.brandingItems.trim()
+      };
+    }
+
     function validateCurrentPage() {
       clearErrors();
       let valid = true;
@@ -1265,6 +1339,7 @@
 
     function gotoPage(targetPage, direction = "next") {
       if (targetPage < 1 || targetPage > TOTAL_STEPS || targetPage === state.currentPage) return;
+      setSubmitStatus("");
       const currentEl = document.querySelector(`.form-page[data-page="${state.currentPage}"]`);
       const nextEl = document.querySelector(`.form-page[data-page="${targetPage}"]`);
       const outClass = direction === "next" ? "anim-out-left" : "anim-out-right";
@@ -1304,7 +1379,7 @@
       reader.readAsDataURL(file);
     }
 
-    function submitForm() {
+    function showSuccessScreen() {
       const firstName = state.formData.fullName.trim().split(" ")[0] || "Participant";
       const email = state.formData.emailAddress.trim();
       successCopy.textContent = `Thank you, ${firstName}! We’ll be in touch at ${email} shortly.`;
@@ -1315,8 +1390,70 @@
       stepAnnouncer.textContent = "Registration complete";
     }
 
+    async function submitForm() {
+      if (isSubmitting) return;
+      if (!isSubmissionConfigured()) {
+        updateConfigWarning();
+        return;
+      }
+      isSubmitting = true;
+      setSubmitStatus("Submitting your response...", "");
+      updateHeader();
+      const payload = buildSubmissionPayload();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
+      try {
+        const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          const statusText = response.statusText || "Request failed";
+          const httpError = new Error("Submission failed");
+          httpError.name = "HttpError";
+          httpError.status = response.status;
+          httpError.statusText = statusText;
+          throw httpError;
+        }
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const body = await response.json();
+          if (body && body.status && body.status !== "ok") {
+            const httpError = new Error("Submission failed");
+            httpError.name = "HttpError";
+            httpError.status = response.status;
+            httpError.statusText = body.message || "Request failed";
+            throw httpError;
+          }
+        }
+      } catch (error) {
+        let message = "We couldn't save your response. Please try again or contact support.";
+        if (error.name === "AbortError") {
+          message = `Submission timed out after ${SUBMIT_TIMEOUT_SECONDS} seconds. Please try again.`;
+        } else if (error.name === "TypeError") {
+          message = "Network error while submitting. Check your connection and try again.";
+        } else if (error.name === "HttpError") {
+          message = "We couldn't save your response. Please try again later.";
+        }
+        setSubmitStatus(message, "error");
+        console.error("Submission error:", error);
+        isSubmitting = false;
+        updateHeader();
+        return;
+      } finally {
+        clearTimeout(timeout);
+      }
+      isSubmitting = false;
+      updateHeader();
+      showSuccessScreen();
+    }
+
     function resetForm() {
       state.currentPage = 1;
+      isSubmitting = false;
       state.formData = {
         fullName: "",
         phoneNumber: "",
@@ -1335,6 +1472,7 @@
         brandingItems: ""
       };
       clearErrors();
+      setSubmitStatus("");
       document.querySelectorAll(".form-page").forEach((page, idx) => page.classList.toggle("active", idx === 0));
       pageStage.style.display = "block";
       successScreen.style.display = "none";
@@ -1498,6 +1636,10 @@
     updateHeader();
     syncFieldsFromState();
     adjustStageHeight();
+    updateConfigWarning();
+    if (!isSubmissionConfigured()) {
+      console.warn("Google Sheets submission is not configured. Set GOOGLE_SHEET_WEB_APP_URL in index.html.");
+    }
     focusFirstInput();
     window.addEventListener("resize", adjustStageHeight);
   </script>
