@@ -1379,7 +1379,7 @@
     async function submitForm() {
       if (isSubmitting) return;
       if (!isSubmissionConfigured()) {
-        setSubmitStatus("Add your Google Apps Script Web App URL to enable submissions.", "error");
+        setSubmitStatus("Configuration required: see README.md for Google Sheets setup instructions.", "error");
         return;
       }
       isSubmitting = true;
@@ -1601,6 +1601,9 @@
     updateHeader();
     syncFieldsFromState();
     adjustStageHeight();
+    if (!isSubmissionConfigured()) {
+      console.warn("Google Sheets submission is not configured. Set GOOGLE_SHEET_WEB_APP_URL in index.html.");
+    }
     focusFirstInput();
     window.addEventListener("resize", adjustStageHeight);
   </script>
