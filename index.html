@@ -106,8 +106,8 @@
 
     .card {
       width: 100%;
-      max-width: 860px;
-      min-height: clamp(560px, 84vh, 760px);
+      max-width: min(980px, 94vw);
+      min-height: clamp(520px, 82vh, 760px);
       background: var(--color-card);
       border: 0.5px solid rgba(3, 173, 252, 0.18);
       border-radius: var(--radius-card);
@@ -215,7 +215,7 @@
     .page-stage {
       width: 100%;
       position: relative;
-      min-height: clamp(340px, 46vh, 500px);
+      min-height: clamp(320px, 46vh, 500px);
       transition: height var(--transition-fast);
     }
 
@@ -225,7 +225,7 @@
       opacity: 0;
       pointer-events: none;
       visibility: hidden;
-      padding-right: 80px;
+      padding-right: clamp(40px, 8vw, 80px);
     }
 
     .form-page.active {
@@ -699,10 +699,23 @@
       border: 0;
     }
 
+    @media (min-width: 1200px) {
+      body { padding: 28px; }
+      .card { max-width: 1040px; min-height: clamp(520px, 78vh, 820px); }
+      .main { padding: 34px; }
+      .heading { font-size: 24px; }
+    }
+
+    @media (max-width: 900px) {
+      .main { padding: 24px; }
+      .form-page { padding-right: 56px; }
+      .form-logo-inline { width: 56px; height: 56px; }
+    }
+
     @media (max-width: 700px) {
       body { padding: 12px; }
       .card { min-height: calc(100vh - 24px); }
-      .main { padding: 20px; }
+      .main { padding: 20px; align-items: flex-start; }
       .footer { padding: 16px 20px; }
       .mentor-cards,
       .role-cards { grid-template-columns: 1fr; }
@@ -711,9 +724,26 @@
       .heading { font-size: 20px; }
       .form-logo { width: 34px; height: 34px; }
       .form-logo-inline { width: 52px; height: 52px; }
-      .form-page { padding-right: 64px; }
+      .form-page { padding-right: 40px; }
       .ambient-bg span:nth-child(2),
       .ambient-bg span:nth-child(4) { display: none; }
+    }
+
+    @media (max-width: 520px) {
+      .header-top { flex-wrap: wrap; align-items: flex-start; }
+      .header-actions { width: 100%; justify-content: space-between; }
+      .main { padding: 18px; }
+      .form-page { padding-right: 0; }
+      .form-logo-inline { display: none; }
+      .card { border-radius: 14px; }
+    }
+
+    @media (max-width: 420px) {
+      .heading { font-size: 18px; }
+      .subtext { font-size: 13px; }
+      .btn { padding: 10px 18px; }
+      .btn-primary { padding-left: 20px; padding-right: 20px; }
+      .form-logo { width: 30px; height: 30px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
