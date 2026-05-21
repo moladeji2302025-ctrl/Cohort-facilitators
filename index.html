@@ -878,8 +878,6 @@
             </button>
           </div>
           <div class="mentor-extra" id="mentorExtra">
-            <label for="mentorTopic">Mentorship topic / area of expertise</label>
-            <input id="mentorTopic" type="text" placeholder="e.g. Product strategy for startup founders" />
             <div class="pill-row">
               <button type="button" class="pill" data-availability="One-on-One">One-on-One</button>
               <button type="button" class="pill" data-availability="Group">Group</button>
@@ -901,30 +899,7 @@
 
         <!-- Step 9 -->
         <section class="form-page" data-page="9" aria-labelledby="h9">
-          <h2 class="heading" id="h9">Which session(s) are you interested in? <span class="required-mark" aria-hidden="true">*</span></h2>
-          <p class="subtext">Select all that apply.</p>
-          <div class="session-stack">
-            <button class="session-card" type="button" data-session="Session 1 — Leadership &amp; Innovation">
-              <span class="checkbox-square"><i class="ti ti-check"></i></span>
-              <span>
-                <span class="session-title">Session 1 — Leadership &amp; Innovation</span>
-                <span class="session-desc">Exploring transformative leadership in modern organizations</span>
-              </span>
-            </button>
-            <button class="session-card" type="button" data-session="Session 2 — Technology &amp; The Future">
-              <span class="checkbox-square"><i class="ti ti-check"></i></span>
-              <span>
-                <span class="session-title">Session 2 — Technology &amp; The Future</span>
-                <span class="session-desc">Navigating emerging tech and digital transformation</span>
-              </span>
-            </button>
-          </div>
-          <div class="error-text" id="error-sessionPreference" role="alert"></div>
-        </section>
-
-        <!-- Step 10 -->
-        <section class="form-page" data-page="10" aria-labelledby="h10">
-          <h2 class="heading" id="h10">Tell us about your organization</h2>
+          <h2 class="heading" id="h9">Tell us about your organization</h2>
           <p class="subtext">All fields on this page are optional.</p>
           <div class="field">
             <label for="orgName">Organization Name</label>
@@ -986,10 +961,8 @@
         headshot: null,
         primaryRole: "",
         mentorInterest: "",
-        mentorTopic: "",
         mentorAvailability: "",
         shortBio: "",
-        sessionPreference: [],
         orgName: "",
         orgAddress: "",
         logoUpload: null,
@@ -997,7 +970,7 @@
       }
     };
 
-    const TOTAL_STEPS = 10;
+    const TOTAL_STEPS = 9;
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const SOCIAL_PLATFORMS = ["Instagram", "Twitter/X", "LinkedIn", "TikTok", "Facebook", "YouTube", "Other"];
@@ -1023,7 +996,6 @@
       fullName: document.getElementById("fullName"),
       phoneNumber: document.getElementById("phoneNumber"),
       emailAddress: document.getElementById("emailAddress"),
-      mentorTopic: document.getElementById("mentorTopic"),
       shortBio: document.getElementById("shortBio"),
       orgName: document.getElementById("orgName"),
       orgAddress: document.getElementById("orgAddress"),
@@ -1039,7 +1011,6 @@
       roleChoice: document.getElementById("error-roleChoice"),
       mentorInterest: document.getElementById("error-mentorInterest"),
       shortBio: document.getElementById("error-shortBio"),
-      sessionPreference: document.getElementById("error-sessionPreference"),
       logoUpload: document.getElementById("error-logoUpload")
     };
 
@@ -1193,7 +1164,6 @@
       renderSocialRows();
       renderRoleSelection();
       renderMentorSelection();
-      renderSessionSelection();
       renderUploadPreview("headshot");
       renderUploadPreview("logoUpload");
       updateCountdown();
@@ -1210,13 +1180,6 @@
       mentorExtra.style.display = isSecondaryMentor && state.formData.mentorInterest === "yes" ? "block" : "none";
       document.querySelectorAll(".pill").forEach((pill) => {
         pill.classList.toggle("selected", pill.dataset.availability === state.formData.mentorAvailability);
-      });
-    }
-
-    function renderSessionSelection() {
-      document.querySelectorAll(".session-card").forEach((cardNode) => {
-        const selected = state.formData.sessionPreference.includes(cardNode.dataset.session);
-        cardNode.classList.toggle("selected", selected);
       });
     }
 
@@ -1249,10 +1212,8 @@
         headshot: state.formData.headshot || null,
         primaryRole: state.formData.primaryRole,
         mentorInterest: state.formData.mentorInterest,
-        mentorTopic: state.formData.mentorTopic,
         mentorAvailability: state.formData.mentorAvailability,
         shortBio: state.formData.shortBio.trim(),
-        sessionPreference: [...state.formData.sessionPreference],
         orgName: state.formData.orgName.trim(),
         orgAddress: state.formData.orgAddress.trim(),
         logoUpload: state.formData.logoUpload || null,
@@ -1306,11 +1267,6 @@
         if (!state.formData.shortBio.trim()) {
           valid = false;
           setError("shortBio", "Please provide a short bio.", fieldMap.shortBio);
-        }
-      } else if (state.currentPage === 9) {
-        if (!state.formData.sessionPreference.length) {
-          valid = false;
-          setError("sessionPreference", "Please select at least one session.");
         }
       }
       if (!valid) toggleShake();
@@ -1445,10 +1401,8 @@
         headshot: null,
         primaryRole: "",
         mentorInterest: "",
-        mentorTopic: "",
         mentorAvailability: "",
         shortBio: "",
-        sessionPreference: [],
         orgName: "",
         orgAddress: "",
         logoUpload: null,
@@ -1515,7 +1469,6 @@
       btn.addEventListener("click", () => {
         state.formData.primaryRole = btn.dataset.role;
         state.formData.mentorInterest = "";
-        state.formData.mentorTopic = "";
         state.formData.mentorAvailability = "";
         renderRoleSelection();
         renderMentorSelection();
@@ -1527,7 +1480,6 @@
       btn.addEventListener("click", () => {
         state.formData.mentorInterest = btn.dataset.mentor;
         if (state.formData.mentorInterest !== "yes") {
-          state.formData.mentorTopic = "";
           state.formData.mentorAvailability = "";
         }
         renderMentorSelection();
@@ -1539,18 +1491,6 @@
       pill.addEventListener("click", () => {
         state.formData.mentorAvailability = pill.dataset.availability;
         renderMentorSelection();
-      });
-    });
-
-    document.querySelectorAll(".session-card").forEach((cardNode) => {
-      cardNode.addEventListener("click", () => {
-        const value = cardNode.dataset.session;
-        if (state.formData.sessionPreference.includes(value)) {
-          state.formData.sessionPreference = state.formData.sessionPreference.filter((item) => item !== value);
-        } else {
-          state.formData.sessionPreference = [...state.formData.sessionPreference, value];
-        }
-        renderSessionSelection();
       });
     });
 
