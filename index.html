@@ -1403,24 +1403,14 @@
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
       try {
-        const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+        await fetch(GOOGLE_SHEET_WEB_APP_URL, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload),
           signal: controller.signal
       });
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const body = await response.json();
-          if (body && body.status && body.status !== "ok") {
-            const httpError = new Error("Submission failed");
-            httpError.name = "HttpError";
-            httpError.status = response.status;
-            httpError.statusText = body.message || "Request failed";
-            throw httpError;
-          }
-        }
+      // no-cors returns an opaque response — we can't read it, so trust it worked
       } catch (error) {
         let message = "We couldn't save your response. Please try again or contact support.";
         if (error.name === "AbortError") {
