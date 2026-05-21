@@ -1405,19 +1405,11 @@
       try {
         const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
           method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain" },
           body: JSON.stringify(payload),
           signal: controller.signal
-        });
-        if (!response.ok) {
-          const statusText = response.statusText || "Request failed";
-          const httpError = new Error("Submission failed");
-          httpError.name = "HttpError";
-          httpError.status = response.status;
-          httpError.statusText = statusText;
-          throw httpError;
-        }
+      });
         const contentType = response.headers.get("content-type") || "";
         if (contentType.includes("application/json")) {
           const body = await response.json();
