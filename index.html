@@ -36,6 +36,8 @@
     }
 
     body {
+      --shell-padding: 22px;
+      --card-max-height: calc(100dvh - (var(--shell-padding) * 2));
       margin: 0;
       font-family: "Inter", sans-serif;
       font-weight: 400;
@@ -44,7 +46,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 22px;
+      padding: var(--shell-padding);
       position: relative;
       overflow: hidden;
       background: url("5558810.jpg") center center / cover no-repeat fixed;
@@ -107,7 +109,9 @@
     .card {
       width: 100%;
       max-width: min(980px, 94vw);
-      min-height: clamp(520px, 82vh, 760px);
+      min-height: min(520px, var(--card-max-height));
+      height: min(760px, var(--card-max-height));
+      max-height: var(--card-max-height);
       background: var(--color-card);
       border: 0.5px solid rgba(3, 173, 252, 0.18);
       border-radius: var(--radius-card);
@@ -210,12 +214,16 @@
       padding: 28px;
       display: flex;
       align-items: center;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .page-stage {
       width: 100%;
       position: relative;
-      min-height: clamp(320px, 46vh, 500px);
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
       transition: height var(--transition-fast);
     }
 
@@ -226,6 +234,9 @@
       pointer-events: none;
       visibility: hidden;
       padding-right: clamp(40px, 8vw, 80px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
     }
 
     .form-page.active {
@@ -700,8 +711,12 @@
     }
 
     @media (min-width: 1200px) {
-      body { padding: 28px; }
-      .card { max-width: 1040px; min-height: clamp(520px, 78vh, 820px); }
+      body { --shell-padding: 28px; padding: var(--shell-padding); }
+      .card {
+        max-width: 1040px;
+        height: min(820px, var(--card-max-height));
+        max-height: var(--card-max-height);
+      }
       .main { padding: 34px; }
       .heading { font-size: 24px; }
     }
@@ -713,8 +728,8 @@
     }
 
     @media (max-width: 700px) {
-      body { padding: 12px; }
-      .card { min-height: calc(100vh - 24px); }
+      body { --shell-padding: 12px; padding: var(--shell-padding); }
+      .card { min-height: var(--card-max-height); }
       .main { padding: 20px; align-items: flex-start; }
       .footer { padding: 16px 20px; }
       .mentor-cards,
@@ -1088,7 +1103,10 @@
       const current = document.querySelector(`.form-page[data-page="${state.currentPage}"]`);
       if (!current) return;
       requestAnimationFrame(() => {
-        pageStage.style.height = `${current.scrollHeight}px`;
+        const availableHeight = pageStage.parentElement?.clientHeight || 0;
+        const contentHeight = current.scrollHeight;
+        const nextHeight = availableHeight ? Math.min(contentHeight, availableHeight) : contentHeight;
+        if (nextHeight) pageStage.style.height = `${nextHeight}px`;
       });
     }
 
