@@ -213,7 +213,7 @@
       flex: 1;
       padding: 28px;
       display: flex;
-      align-items: stretch;
+      align-items: center;
       min-height: 0;
       overflow: hidden;
     }
@@ -730,7 +730,7 @@
     @media (max-width: 700px) {
       body { --shell-padding: 12px; padding: var(--shell-padding); }
       .card { min-height: var(--card-max-height); }
-      .main { padding: 20px; }
+      .main { padding: 20px; align-items: flex-start; }
       .footer { padding: 16px 20px; }
       .mentor-cards,
       .role-cards { grid-template-columns: 1fr; }
@@ -1100,9 +1100,13 @@
     }
 
     function adjustStageHeight() {
+      const current = document.querySelector(`.form-page[data-page="${state.currentPage}"]`);
+      if (!current) return;
       requestAnimationFrame(() => {
-        const stageHeight = pageStage.parentElement?.clientHeight;
-        if (stageHeight) pageStage.style.height = `${stageHeight}px`;
+        const availableHeight = pageStage.parentElement?.clientHeight || 0;
+        const contentHeight = current.scrollHeight;
+        const nextHeight = availableHeight ? Math.min(contentHeight, availableHeight) : contentHeight;
+        if (nextHeight) pageStage.style.height = `${nextHeight}px`;
       });
     }
 
