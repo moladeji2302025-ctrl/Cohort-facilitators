@@ -1,18 +1,56 @@
 # Cohort-facilitators
 
-## Google Sheets storage
+## Google Sheets + Google Drive storage
 
-1. Create a Google Sheet for responses.
+Responses are saved to a Google Sheet. Headshots and logos are uploaded as real files to a **Google Drive** folder and their shareable links are stored in the sheet.
+
+> **Important:** Sign in to Google as **mofejeriiseoluwa@gmail.com** before following these steps. The Apps Script runs as the signed-in account, so all files (Sheet and Drive folder) will live in that account.
+
+1. Create a Google Sheet for responses inside the `mofejeriiseoluwa@gmail.com` Google Drive.
 2. Open **Extensions → Apps Script** and paste the script below.
 3. Update `SHEET_NAME` if you want a custom sheet tab name.
 4. Update `ALLOWED_ORIGIN` to your deployed site domain.
 5. Deploy as **Web app** (Execute as: **Me**, Who has access: **Anyone**).
 6. Copy the Web App URL into `GOOGLE_SHEET_WEB_APP_URL` in `index.html`.
 
+A Drive folder called **"Cohort Facilitators Submissions"** will be created automatically on the first submission, with `Headshots/` and `Logos/` subfolders inside it.
+
 ### Apps Script (Code.gs)
 ```javascript
 const SHEET_NAME = "Responses";
 const ALLOWED_ORIGIN = "https://yourdomain.com";
+const DRIVE_FOLDER_NAME = "Cohort Facilitators Submissions";
+
+function getOrCreateFolder(parent, name) {
+  const existing = parent.getFoldersByName(name);
+  return existing.hasNext() ? existing.next() : parent.createFolder(name);
+}
+
+function getRootFolder() {
+  const existing = DriveApp.getFoldersByName(DRIVE_FOLDER_NAME);
+  return existing.hasNext() ? existing.next() : DriveApp.createFolder(DRIVE_FOLDER_NAME);
+}
+
+function saveFileToDrive(fileData, subfolderName) {
+  if (!fileData || !fileData.dataUrl) return "";
+  try {
+    const matches = fileData.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+    if (!matches) return "";
+    const mimeType = matches[1];
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(matches[2]),
+      mimeType,
+      fileData.name || "upload"
+    );
+    const subfolder = getOrCreateFolder(getRootFolder(), subfolderName);
+    const file = subfolder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return file.getUrl();
+  } catch (err) {
+    console.error("Drive upload failed:", err);
+    return "";
+  }
+}
 
 function doPost(e) {
   let payload = {};
@@ -23,6 +61,10 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON)
       .setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   }
+
+  const headshotUrl = saveFileToDrive(payload.headshot, "Headshots");
+  const logoUrl = saveFileToDrive(payload.logoUpload, "Logos");
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
   const headers = [
@@ -31,14 +73,14 @@ function doPost(e) {
     "Phone Number",
     "Email Address",
     "Social Handles",
-    "Headshot",
+    "Headshot URL",
     "Primary Role",
     "Mentor Interest",
     "Mentor Availability",
     "Short Bio",
     "Organization Name",
     "Organization Address",
-    "Logo Upload",
+    "Logo URL",
     "Branding Items"
   ];
   if (sheet.getLastRow() === 0) {
@@ -50,14 +92,14 @@ function doPost(e) {
     payload.phoneNumber || "",
     payload.emailAddress || "",
     JSON.stringify(payload.socialHandles || []),
-    JSON.stringify(payload.headshot || null),
+    headshotUrl,
     payload.primaryRole || "",
     payload.mentorInterest || "",
     payload.mentorAvailability || "",
     payload.shortBio || "",
     payload.orgName || "",
     payload.orgAddress || "",
-    JSON.stringify(payload.logoUpload || null),
+    logoUrl,
     payload.brandingItems || ""
   ]);
   return ContentService.createTextOutput(JSON.stringify({ status: "ok" }))
@@ -72,8 +114,6 @@ function doOptions() {
     .setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 ```
-
-The headshot and logo fields are posted as JSON payloads (including data URLs). If you want to store the images in Drive instead of the sheet, extend the Apps Script to write files and store the resulting file links.
 
 The Web App URL is public by design. Consider adding basic validation, quotas, or token checks in Apps Script to reduce spam submissions.
 
